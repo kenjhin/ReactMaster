@@ -1,4 +1,4 @@
-import React, { memo, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 
 function App() {
@@ -16,19 +16,41 @@ function App() {
     // 아래 셋 메모스가 실행이 안됌 는 알겠는데 왜 !텍스트 트림 이게 빈 문자열을 의미하는지 이해가 안가네
     //  !아니라면 / 텍스트(빈문자에).공백을 지웠어 근데 > 빈문자에 공백을 지웠는데 이게 아니라면 ? 이게아님?
 
-    setMemos([...memos, { id: Date.now(), text }]);
-    // ...스프레드 문법(배열 복사 ? )
-    // { id: Date.now(), text } 새 메모 = 객체 추가
-    // 다시한번 공부해보기 스프레드.. 희얀하네
-    setText("");
-    // 새 메모 등록하고 -> 텍스트 빈거로 만들기
+    fetch("http://localhost:3001/memos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    })
+      .then((res) => res.json())
+      .then((newMemo) => {
+        setMemos([...memos, newMemo]);
+        setText("");
+      });
+
+    // setMemos([...memos, { id: Date.now(), text }]);
+    // // ...스프레드 문법(배열 복사 ? )
+    // // { id: Date.now(), text } 새 메모 = 객체 추가
+    // // 다시한번 공부해보기 스프레드.. 희얀하네
+    // setText("");
+    // // 새 메모 등록하고 -> 텍스트 빈거로 만들기
   };
 
   const handleDelete = (id) => {
-    setMemos(memos.filter((memo) => memo.id !== id));
+    // setMemos(memos.filter((memo) => memo.id !== id));
+    fetch(`http://localhost:3001/memos/${id}`, {
+      method: "DELETE",
+    }).then(() => {
+      setMemos(memos.filter((memo) => memo.id !== id));
+    });
   }; //memos 배열에 메모.아이디가 삭제하려는 id와 같지 않은거만 남겨라 = 필터 => 나머지만 남긴 새 배열을 다시 배치하는거
   // 지금 버튼누릉 아이디랑 배열 아이디랑 안같으면 (필터하셈=그것만 가져오셈)
   // 필터의 의미 끝
+
+  useEffect(() => {
+    fetch("http://localhost:3001/memos")
+      .then((res) => res.json())
+      .then((data) => setMemos(data));
+  }, []);
 
   return (
     <div style={{ padding: 24, fontFamily: "sans-serif" }}>
